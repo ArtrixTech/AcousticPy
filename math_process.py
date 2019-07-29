@@ -20,10 +20,14 @@ class DiscreteFunction:
         :return: list, consist of 2 value: x1, x2. These x-values are the nearest original-x data.
         """
 
-        mid_index = 0
-        for index in range(len(self._original_x) - 1):
-            if self._original_x[index] <= x <= self._original_x[index + 1]:
-                mid_index = index
+        if x == self.definition[0]:
+            mid_index = 0
+        elif x == self.definition[1]:
+            mid_index = len(self._original_x) - 2
+        else:
+            for index in range(len(self._original_x) - 1):
+                if self._original_x[index] <= x <= self._original_x[index + 1]:
+                    mid_index = index
 
         return self._original_x[mid_index], self._original_x[mid_index + 1]
 

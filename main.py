@@ -58,7 +58,7 @@ measure = Measurement(open('fr.txt'))
 target = Measurement(open('target_rtings.txt'))
 
 func_measure = DiscreteFunction(measure.get_freq_list(), measure.get_spl_list())
-for x in range(10,100):
+for x in range(10, 100):
     print(func_measure.get_y(x))
 
 fig1, ax1 = plt.subplots()
