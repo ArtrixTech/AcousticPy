@@ -89,8 +89,13 @@ class DiscreteFunction:
         return self.definition[1] - self.definition[0]
 
     def sample_x(self, sample_rate, sample_range=None, low_freq_gain=True):
+
         if not sample_range:
             sample_range = self.definition
+
+        if sample_range[0] > 100:
+            low_freq_gain = False
+
         if not low_freq_gain:
             interval = (sample_range[1] - sample_range[0]) / sample_rate
             rt = []
@@ -114,7 +119,8 @@ class DiscreteFunction:
             return low_freq + other_freq
 
     def sample_y(self, sample_rate, def_range=None):
-        x_list = self.sample_x(sample_rate, def_range)
+        x_list = self.sample_x(sample_rate, sample_range=def_range)
+        print(x_list)
         rt = []
         last_index = 0
         for x in x_list:
@@ -124,11 +130,19 @@ class DiscreteFunction:
 
 
 class FuncFitting:
-    def __init__(self, target_func, input_func):
+    def __init__(self, target_func, input_func, def_range=None):
         assert isinstance(target_func, DiscreteFunction) and isinstance(input_func, DiscreteFunction)
         self.target_func = target_func.clone()
         self.input_func = input_func.clone()
-        self.def_range = None
+        self._drawing = Drawing()
+
+        if not def_range:
+            if self.target_func.definition == self.input_func.definition:
+                self.def_range = self.target_func.definition
+            else:
+                raise ValueError("Definition range not consistent. Try input a specific range.")
+        else:
+            self.def_range = def_range
 
     @staticmethod
     def _get_diff(target_y, input_y):
@@ -140,28 +154,31 @@ class FuncFitting:
             diff += abs(target_y[index] - input_y[index])
         return diff
 
-    def fit(self, sample_rate, def_range=None):
-        if not def_range:
-            if self.target_func.definition == self.input_func.definition:
-                self.def_range = self.target_func.definition
-            else:
-                raise ValueError("Definition range not consistent. Try input a specific range.")
-        else:
-            self.def_range = def_range
+    def show_fit(self, sample_rate):
 
-        drawing = Drawing()
-        plt = drawing.get_plt()
+        plt = self._drawing.get_plt()
         plt.ion()
 
-        target_y_list = self.target_func.sample_y(sample_rate, def_range)
-        drawing.draw_semi_log_x(self.target_func.sample_x(sample_rate, def_range), target_y_list)
+        target_y_list = self.target_func.sample_y(sample_rate, self.def_range)
+        input_y_list = self.input_func.sample_y(sample_rate, self.def_range)
 
-        for bias in range(200):
-            self.input_func.add_bias(0.01)
+        self._drawing.draw_semi_log_x(self.target_func.sample_x(sample_rate, self.def_range), target_y_list)
+        self._drawing.draw_semi_log_x(self.input_func.sample_x(sample_rate, self.def_range), input_y_list)
 
-            input_y_list = self.input_func.sample_y(sample_rate, def_range)
-            drawing.draw_semi_log_x(self.input_func.sample_x(sample_rate, def_range), input_y_list)
+    def fit(self, sample_rate):
 
-            print("drawn:bias=" + str(bias*0.01) + ", diff=" + str(self._get_diff(target_y_list, input_y_list)))
+        plt = self._drawing.get_plt()
+        plt.ion()
+
+        target_y_list = self.target_func.sample_y(sample_rate, self.def_range)
+
+        for bias in range(2000):
+            plt.cla()
+            self.input_func.add_bias(0.1)
+
+            input_y_list = self.input_func.sample_y(sample_rate, self.def_range)
+            self.show_fit(sample_rate)
+
+            print("drawn:bias=" + str(bias * 0.1) + ", diff=" + str(self._get_diff(target_y_list, input_y_list)))
             plt.pause(0.01)
             # drawing.show()

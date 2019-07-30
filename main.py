@@ -15,11 +15,12 @@ target = Measurement(open('target_rtings.txt'))
 func_measure = DiscreteFunction(measure.get_freq_list(), measure.get_spl_list(), definition=[20, 21000])
 func_target = DiscreteFunction(target.get_freq_list(), target.get_spl_list(), definition=[20, 21000])
 
-func_measure.add_bias(30.1)
+func_measure.add_bias(43.1)
 
-fit = FuncFitting(func_target, func_measure)
+fit = FuncFitting(func_target, func_measure, def_range=[800, 21000])
+# fit.show_fit(500)
 print(func_measure.get_y(20))
-fit.fit(500, [20, 21000])
+fit.fit(500)
 
 if 0 == range(1):  # remember to del this line
 
